@@ -1,0 +1,204 @@
+{
+  "name": "Week 2 Auto Save Orders to Google Sheets",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "128e6840-a467-4524-8503-8ffcab72eda4",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ad0e7bea-6df5-4f8b-8390-3f19017e3160",
+              "name": "customerName",
+              "value": "Amaka Johnson",
+              "type": "string"
+            },
+            {
+              "id": "26eed8f0-1582-49de-b4c2-68fd90965f83",
+              "name": "product",
+              "value": "Red Lingerie Set",
+              "type": "string"
+            },
+            {
+              "id": "20b84178-fe1d-4b28-a1c8-89d2794efd15",
+              "name": "size",
+              "value": "M",
+              "type": "string"
+            },
+            {
+              "id": "130a9cf5-34ce-4434-bb68-b42f392a7740",
+              "name": "price",
+              "value": 8500,
+              "type": "number"
+            },
+            {
+              "id": "585f74ff-0139-4a06-9447-6af9ba5263e8",
+              "name": "orderDate\t",
+              "value": "2024-01-15",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "64feac92-5927-45bd-a3c3-a823a7a363b2",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1zCXoYAO6QvqnR8gfrgVZcXNt7tpuNGvUdNhFzOnAUnc",
+          "mode": "list",
+          "cachedResultName": "SoftWare Order",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zCXoYAO6QvqnR8gfrgVZcXNt7tpuNGvUdNhFzOnAUnc/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zCXoYAO6QvqnR8gfrgVZcXNt7tpuNGvUdNhFzOnAUnc/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "customerName",
+              "displayName": "customerName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "product",
+              "displayName": "product",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "size",
+              "displayName": "size",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "price",
+              "displayName": "price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "orderDate",
+              "displayName": "orderDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "orderDate\t",
+              "displayName": "orderDate\t",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        416,
+        0
+      ],
+      "id": "250502e3-284a-4e61-9cbe-f0a779b35813",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "1XI1I2cqRQ6RHL56",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "b692fcd3-4a19-4548-9369-673c196a347e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "86cfbd1318d1a50e97e3835896a50adb7d88bd70e6584a4a8cb548491ab6a85e"
+  },
+  "id": "eYrB0tCFbesqyvUp",
+  "tags": []
+}
