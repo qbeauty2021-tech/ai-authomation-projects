@@ -1,27 +1,30 @@
-AI Automation Projects
-Built during the TechCrush AI Automation Specialist Bootcamp
+# 📬 Automated Receipt Manager
+Week 4 Class 1 — TechCrush AI Automation Specialist Bootcamp
 
-Week 3 Project: Intelligent Lead Router
-A fully automated lead routing system built with n8n that intelligently assigns incoming sales leads to the right sales rep based on deal size, region, and priority.
+## 📌 Project Overview
+A fully automated receipt management system built with n8n that runs every 5 minutes, reads receipt emails from Gmail, extracts key financial data, and logs everything automatically to Google Sheets — replacing manual tracking completely.
 
-How It Works
-- ✅ Step 1 — Webhook receives incoming lead data
-- ✅ Step 2 — Switch node routes by deal size (Enterprise / Mid-Market / SMB)
-- ✅ Step 3 — Regional routing (NA / EMEA / APAC / LATAM)
-- ✅ Step 4 — Priority boost logic identifies hot leads
-- ✅ Step 5 — Assigns lead to specific sales rep
-- ✅ Step 6 — Notifies rep and logs the assignment
+## ⚙️ How It Works
+- ✅ Step 1 — Schedule Trigger fires every 5 minutes automatically
+- ✅ Step 2 — Gmail node searches inbox for emails containing "receipt"
+- ✅ Step 3 — Code node extracts: date, subject, sender, amount, email ID
+- ✅ Step 4 — Google Sheets logs every receipt as a new row automatically
 
-Tools Used
-n8n, Webhook, Switch Node, IF Node, JavaScript, PowerShell
+## 🛠️ Tools Used
+n8n, Gmail API, Google Sheets API, JavaScript, Schedule Trigger, OAuth2, Google Cloud Console
 
-Concepts Learned
-- Conditional logic with IF nodes (AND / OR / NOT)
-- Multi-path routing with Switch nodes
-- Data validation and normalization
-- Nested JSON data handling ($json.body)
-- Webhook testing with PowerShell
-- Building complex multi-branch workflows
+## 🧠 Concepts Learned
+- Schedule Trigger (Cron) — time-based automation
+- Inter-app connectivity — Gmail → n8n → Google Sheets
+- Gmail API setup via Google Cloud Console
+- OAuth2 authentication for Google services
+- JavaScript regex for extracting amounts from email snippets
+- Real business automation — replacing manual receipt tracking
 
-Author
-Built by Rainat — TechCrush AI Automation Bootcamp, Week 3 (2026)
+## 💡 Real Business Value
+- Automatically tracks all payment receipts without manual work
+- Runs 24/7 every 5 minutes — never misses a receipt
+- Applicable to SoftWear Abuja — track all customer payments automatically
+
+## 👤 Author
+Built by Rainat — TechCrush AI Automation Bootcamp, Week 4 Class 1 (2026)
