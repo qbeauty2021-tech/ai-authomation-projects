@@ -1,0 +1,212 @@
+{
+  "name": "Automated Receipt Manager",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -704,
+        -96
+      ],
+      "id": "02d46c1e-b228-44ff-bd57-b76c438657d8",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "filters": {
+          "q": "receipt"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -496,
+        -96
+      ],
+      "id": "6eef40eb-a688-436b-a243-4cccb8fe8df3",
+      "name": "Get many messages",
+      "webhookId": "bdea1a91-0036-421e-8a42-732f75c73979",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "SGcQ9hoKyBdimVMY",
+          "name": "Gmail account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = [];\n\nfor (const item of $input.all()) {\n  const email = item.json;\n  \n  // Extract amount from snippet\n  const snippetText = email.snippet || '';\n  const amountMatch = snippetText.match(/NGN\\s?([\\d,]+\\.?\\d*)|Amount:\\s?([\\d,]+)/i);\n  const amount = amountMatch ? (amountMatch[1] || amountMatch[2]) : 'Unknown';\n  \n  results.push({\n    json: {\n      email_id: email.id,\n      subject: email.Subject || 'No Subject',\n      from: email.From || 'Unknown',\n      to: email.To || 'Unknown',\n      date: new Date(parseInt(email.internalDate)).toLocaleDateString(),\n      snippet: snippetText,\n      amount: amount,\n      processed_at: new Date().toISOString()\n    }\n  });\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -288,
+        -96
+      ],
+      "id": "4ffb8476-411a-4fd1-913a-f772a41bb75b",
+      "name": "Extract Receipt Data"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1jWgly-XzADUo-GeLPdVaE5zd-2Mmi7oIxEarQ4kiFRM",
+          "mode": "list",
+          "cachedResultName": "Receipt Manager Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1jWgly-XzADUo-GeLPdVaE5zd-2Mmi7oIxEarQ4kiFRM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1jWgly-XzADUo-GeLPdVaE5zd-2Mmi7oIxEarQ4kiFRM/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "date": "={{ $json.date }}",
+            "subject": "={{ $json.subject }}",
+            "from": "={{ $json.from }}",
+            "amount": "={{ $json.amount }}",
+            "email_id": "={{ $json.email_id }}",
+            "processed_at": "={{ $json.processed_at }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "subject",
+              "displayName": "subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "from",
+              "displayName": "from",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "amount",
+              "displayName": "amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email_id",
+              "displayName": "email_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "processed_at",
+              "displayName": "processed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -80,
+        -96
+      ],
+      "id": "d4fbff56-37f6-464e-bfce-e434d4030592",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "J8AYZ85qakHMHOyY",
+          "name": "Google Sheets account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get many messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many messages": {
+      "main": [
+        [
+          {
+            "node": "Extract Receipt Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Receipt Data": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "6a98b04b-545f-429e-a6cf-a05632627fc3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "86cfbd1318d1a50e97e3835896a50adb7d88bd70e6584a4a8cb548491ab6a85e"
+  },
+  "id": "qW3l8wmM4DyxotkR",
+  "tags": []
+}
