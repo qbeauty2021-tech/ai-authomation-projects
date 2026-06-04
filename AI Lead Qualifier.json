@@ -1,0 +1,347 @@
+{
+  "name": "AI Lead Qualifier",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -720,
+        -80
+      ],
+      "id": "74e9be17-782e-4ebc-8853-7a662c43e110",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "228320be-9fe8-474c-acd4-9ca98b872fb1",
+              "name": "name",
+              "value": "Amira Johnson",
+              "type": "string"
+            },
+            {
+              "id": "37f3be35-249a-477e-a018-c657c4da76ef",
+              "name": "company",
+              "value": "TechCrush Lagos",
+              "type": "string"
+            },
+            {
+              "id": "69d8a084-039c-4264-bdce-3f49f92b6e8d",
+              "name": "message",
+              "value": "We are interested, would like to learn more",
+              "type": "string"
+            },
+            {
+              "id": "20d73bfc-19d6-4302-8a76-598ff80d3019",
+              "name": "deal_value",
+              "value": 25000,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -560,
+        -80
+      ],
+      "id": "0f9281bb-b463-4bec-a314-5d019f0c0a14",
+      "name": "Lead Data"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "models/gemini-3-flash-preview"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a sales qualification assistant for a B2B software company.\n\nHere is the lead data:\nName: {{ $json.name }}\nCompany: {{ $json.company }}\nMessage: {{ $json.message }}\nDeal Value: {{ $json.deal_value }}\n\nClassify this lead as Hot, Warm, or Cold using these rules:\n- Hot: urgent language OR deal_value above 50000\n- Warm: interested but not urgent OR deal_value between 10000 and 50000\n- Cold: low interest OR deal_value below 10000\n\nReturn JSON only. No extra text, no explanation:\n{\"category\": \"Hot\", \"reason\": \"short reason here\"}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        -384,
+        -80
+      ],
+      "id": "3b5b1e53-aeec-4934-ac9e-9efe537c5d47",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ervcJKXYOQCuxYXX",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rawText = $input.first().json.content.parts[0].text;\nconst parsed = JSON.parse(rawText);\n\nreturn [{\n  json: {\n    category: parsed.category,\n    reason: parsed.reason\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        -80
+      ],
+      "id": "910b863a-3bb4-49ac-aa3b-d4d333a5412f",
+      "name": "Parse AI Output"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "Hot",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "72ff28ee-68d5-40cd-89d1-2a85ce970f3d"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Hot"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "ad6f5d9f-1289-46ef-89e7-d80afcf53715",
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "Warm",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Warm"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "8b2e4f33-d419-4b44-9452-d75989587431",
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "Cold",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Cold"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        128,
+        -96
+      ],
+      "id": "3901ef58-11a6-435a-a0c5-9a2727b661dc",
+      "name": "Route Lead"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c46de119-7723-4d02-99db-f538a18cfa17",
+              "name": "alert",
+              "value": "=URGENT: {{ $json.reason }} - Assign to senior sales rep immediately!",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        336,
+        -208
+      ],
+      "id": "293ff99a-78f4-4e3d-81bb-4baa8e601929",
+      "name": "Hot Lead"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ab410554-ac5f-40e5-bcd9-61c60fdee364",
+              "name": "alert",
+              "value": "=FOLLOW UP: {{ $json.reason }} - Schedule a call this week.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        336,
+        -96
+      ],
+      "id": "2cdade10-9027-4c63-8e30-ed28f97c2adb",
+      "name": "Warm Result"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a192b2e9-a8f4-4220-98c2-e2f0814a8d77",
+              "name": "alert",
+              "value": "=LOW PRIORITY: {{ $json.reason }} - Add to nurture email sequence.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        336,
+        80
+      ],
+      "id": "dab6f77e-0ef6-4338-8ce4-3b3b44079958",
+      "name": "Cold Result"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Lead Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lead Data": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Output": {
+      "main": [
+        [
+          {
+            "node": "Route Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Lead": {
+      "main": [
+        [
+          {
+            "node": "Hot Lead",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Warm Result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Cold Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "e2188ba2-ba78-45d0-b38d-0c5c22400301",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "86cfbd1318d1a50e97e3835896a50adb7d88bd70e6584a4a8cb548491ab6a85e"
+  },
+  "id": "QiJwm5jd1XLsQluu",
+  "tags": []
+}
