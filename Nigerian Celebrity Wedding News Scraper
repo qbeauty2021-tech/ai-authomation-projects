@@ -1,0 +1,83 @@
+# 🎊 Nigerian Celebrity Wedding News Scraper
+
+## Project Overview
+An automated n8n workflow that scrapes Google News every week for Nigerian celebrity wedding stories, extracts article details and images, and saves everything automatically to a Google Sheet for easy reference and analysis.
+
+---
+
+## What This Workflow Does
+1. **Triggers automatically** every Monday morning via Schedule Trigger
+2. **Fetches Nigerian celebrity wedding news** from Google News RSS feed
+3. **Loops through each article** one at a time
+4. **Extracts the article title, link, published date, and image URL** using JavaScript
+5. **Packages the data** into a clean structured format
+6. **Saves each story** as a new row in Google Sheets automatically
+
+---
+
+## Tools and Technologies Used
+- **n8n** (self-hosted, v2.19.4)
+- **Google News RSS Feed** (no API key required)
+- **JavaScript Code Nodes** (data extraction and transformation)
+- **Google Sheets API** (data storage)
+
+---
+
+## Workflow Nodes
+| Node | Purpose |
+|---|---|
+| Schedule Trigger | Runs every Monday at 8AM |
+| HTTP Request | Fetches Google News RSS feed |
+| XML | Converts RSS XML to JSON |
+| Code in JavaScript | Extracts article titles and links |
+| Loop Over Items | Processes one article at a time |
+| HTTP Request 1 | Fetches full article HTML content |
+| Code in JavaScript 1 | Extracts relevant image URL |
+| Wait | Pauses 5 seconds between requests |
+| Code in JavaScript 2 | Packages all data for Google Sheets |
+| Append Row in Sheet | Saves data to Google Sheets |
+
+---
+
+## Google Sheets Output Structure
+| Column | Data |
+|---|---|
+| Title | Article headline |
+| Couple Names | See article |
+| Wedding Date | See article |
+| Venue | See article |
+| Summary | Short description |
+| Source URL | Link to full article |
+| Date Scraped | Date workflow ran |
+| Image URL | Main image from article |
+
+---
+
+## RSS Feed Used
+```
+https://news.google.com/rss/search?q=Nigerian+celebrity+wedding&hl=en-NG&gl=NG&ceid=NG:en
+```
+
+---
+
+## How to Use This Workflow
+1. Import the JSON file into your n8n instance
+2. Create a Google Sheet with the column headers above
+3. Connect your Google Sheets credential
+4. Activate the workflow
+5. It will run automatically every Monday
+
+---
+
+## Future Upgrades Planned
+- Add Gemini AI to generate broadcast scripts for each story
+- Add duplicate checking to avoid saving the same story twice
+- Add WhatsApp notification via Wati API
+
+---
+
+## Author
+**Rainat Iyabo Lawal (Remmy)**
+AI Automation Specialist | TechCrush Bootcamp
+GitHub: github.com/qbeauty2021-tech
+Portfolio: rainat-lawal.netlify.app
