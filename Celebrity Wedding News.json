@@ -1,0 +1,367 @@
+{
+  "name": "Celebrity Wedding News",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -800,
+        -128
+      ],
+      "id": "56c6561a-f344-48d9-9d46-f54f0df687f6",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://news.google.com/rss/search?q=Nigerian+celebrity+wedding&hl=en-NG&gl=NG&ceid=NG:en",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -624,
+        -128
+      ],
+      "id": "48d4e629-6dfd-4297-b42a-b61fcc15bec1",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.xml",
+      "typeVersion": 1,
+      "position": [
+        -464,
+        -128
+      ],
+      "id": "d4b6f545-d412-4331-908a-cfc3d5f53f89",
+      "name": "XML"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -96,
+        -128
+      ],
+      "id": "6d41927b-31f9-4029-b0fd-38e0215f7a01",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.link }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        112,
+        -240
+      ],
+      "id": "c56a2e57-7568-4549-bb61-c2fe624e4db7",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\n\nconst channel = data.rss?.channel?.[0] || data.rss?.channel;\nconst items = channel?.item || [];\n\nconst results = items.slice(0, 5).map(item => ({\n  json: {\n    title: Array.isArray(item.title) ? item.title[0] : item.title,\n    link: Array.isArray(item.link) ? item.link[0] : item.link,\n    publishedDate: Array.isArray(item.pubDate) ? item.pubDate[0] : item.pubDate\n  }\n}));\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -288,
+        -128
+      ],
+      "id": "23afaa8a-e2e2-4eb5-b8dd-582471a1b799",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nconst html = input.data || input.body || input.content || '';\n\nconst imgRegex = /<img[^>]+src=[\"']([^\"']+)[\"'][^>]*>/gi;\nconst matches = [...html.matchAll(imgRegex)];\n\nconst relevantImages = matches\n  .map(m => m[1])\n  .filter(src =>\n    !src.includes('logo') &&\n    !src.includes('icon') &&\n    !src.includes('ad') &&\n    !src.includes('avatar') &&\n    (src.startsWith('http') || src.startsWith('https'))\n  );\n\nreturn [{\n  json: {\n    title: $('Code in JavaScript').first().json.title,\n    link: $('Code in JavaScript').first().json.link,\n    publishedDate: $('Code in JavaScript').first().json.publishedDate,\n    image_url: relevantImages[0] || 'No image found'\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        32,
+        0
+      ],
+      "id": "bc2ea2ac-7b7b-40a9-84be-176ac8d8a2f2",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        160,
+        -80
+      ],
+      "id": "ee00ee3c-f594-450b-8937-b8bdca486b95",
+      "name": "Wait",
+      "webhookId": "ab63d2dd-f12c-49fa-9d34-3e26eca8fc12"
+    },
+    {
+      "parameters": {
+        "jsCode": "const title = $('Code in JavaScript1').first().json.title || 'No title';\nconst imageUrl = $('Code in JavaScript1').first().json.image_url || 'No image found';\nconst link = $('Code in JavaScript1').first().json.link || '';\nconst publishedDate = $('Code in JavaScript1').first().json.publishedDate || '';\n\nreturn [{\n  json: {\n    title: title,\n    couple_names: 'See article',\n    wedding_date: 'See article',\n    venue: 'See article',\n    summary: 'Nigerian celebrity wedding story. Visit source URL for full details.',\n    image_url: imageUrl,\n    source_url: link,\n    date_scraped: new Date().toISOString().split('T')[0]\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        304,
+        0
+      ],
+      "id": "a38444f7-3f97-4555-9545-feee36da84ac",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1DdNEwL8rXBF6l6TZDo4iX3Ibr9Esxk-UV5ZFPC5GU1g",
+          "mode": "list",
+          "cachedResultName": "Celebrity Wedding News",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DdNEwL8rXBF6l6TZDo4iX3Ibr9Esxk-UV5ZFPC5GU1g/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DdNEwL8rXBF6l6TZDo4iX3Ibr9Esxk-UV5ZFPC5GU1g/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Title": "={{ $json.title }}",
+            "Couple Names": "={{ $json.couple_names }}",
+            "Wedding Date": "={{ $json.wedding_date }}",
+            "Venue": "={{ $json.venue }}",
+            "Summary": "={{ $json.summary }}",
+            "Source URL": "={{ $json.source_url }}",
+            "Date Scraped": "={{ $json.date_scraped }}",
+            "Image URL": "={{ $json.image_url }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Title",
+              "displayName": "Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Couple Names",
+              "displayName": "Couple Names",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Wedding Date",
+              "displayName": "Wedding Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Venue",
+              "displayName": "Venue",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Source URL",
+              "displayName": "Source URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date Scraped",
+              "displayName": "Date Scraped",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Image URL",
+              "displayName": "Image URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        480,
+        -16
+      ],
+      "id": "29129fa4-ac49-42dd-8cd8-8589b9a3c3b9",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "J8AYZ85qakHMHOyY",
+          "name": "Google Sheets account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "XML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "XML": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "850cc500-7082-4eee-8bf9-a25d70386175",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "86cfbd1318d1a50e97e3835896a50adb7d88bd70e6584a4a8cb548491ab6a85e"
+  },
+  "id": "JP3MqMVNn1DEmFYm",
+  "tags": []
+}
