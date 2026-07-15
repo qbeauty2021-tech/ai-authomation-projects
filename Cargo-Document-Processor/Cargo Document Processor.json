@@ -1,0 +1,372 @@
+{
+  "name": "Cargo Document Processor",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1n3Kdad6oMej7d_6g2Od6pE9zUxe_qHXY",
+          "mode": "list",
+          "cachedResultName": "Cargo Documents Inbox",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1n3Kdad6oMej7d_6g2Od6pE9zUxe_qHXY"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -624,
+        0
+      ],
+      "id": "bb29dfc4-934e-4867-9725-557085c67005",
+      "name": "Google Drive Trigger",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "2LDg05ne3LAAFeYq",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -416,
+        0
+      ],
+      "id": "a5eaa765-290d-436a-86db-bb8038383476",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "2LDg05ne3LAAFeYq",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -208,
+        0
+      ],
+      "id": "626d1f2a-baa6-4137-865f-371bc1e4646e",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.text }}",
+        "attributes": {
+          "attributes": [
+            {
+              "name": "waybill_number",
+              "description": "The waybill or reference number of the shipment"
+            },
+            {
+              "name": "consignee_name",
+              "description": "Name of the sender or shipper company"
+            },
+            {
+              "name": "consignee_name",
+              "description": "Name of the receiver or consignee company"
+            },
+            {
+              "name": "cargo_description",
+              "description": "Description of the goods being shipped"
+            },
+            {
+              "name": "total_weight",
+              "description": "Total weight of the shipment"
+            },
+            {
+              "name": "total_value",
+              "description": "Total declared value of the cargo"
+            },
+            {
+              "name": "total_charges",
+              "description": "Total freight charges amount"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "1556d22d-9709-419a-a3a9-d785c38fd1c6",
+      "name": "Information Extractor"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -64,
+        208
+      ],
+      "id": "1551c0c6-e198-4f6e-8afd-373375f39edc",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ervcJKXYOQCuxYXX",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1AVTjED2HV0EflPtYTm1AF8aTahS2BkHnItY0nVm7uaQ",
+          "mode": "list",
+          "cachedResultName": "Cargo Shipment Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1AVTjED2HV0EflPtYTm1AF8aTahS2BkHnItY0nVm7uaQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1AVTjED2HV0EflPtYTm1AF8aTahS2BkHnItY0nVm7uaQ/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Waybill Number": "={{ $json.output.waybill_number }}",
+            "Consignee Name": "={{ $json.output.consignee_name }}",
+            "Cargo Description": "={{ $json.output.cargo_description }}",
+            "Total Weight": "={{ $json.output.total_weight }}",
+            "Total Value": "={{ $json.output.total_value }}",
+            "Total Charges": "={{ $json.output.total_charges }}",
+            "Date Processed": "={{ new Date().toISOString().split('T')[0] }}",
+            "Shipper Name": "=Not extracted"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Waybill Number",
+              "displayName": "Waybill Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Shipper Name",
+              "displayName": "Shipper Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Consignee Name",
+              "displayName": "Consignee Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Cargo Description",
+              "displayName": "Cargo Description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Total Weight",
+              "displayName": "Total Weight",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Total Value",
+              "displayName": "Total Value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Total Charges",
+              "displayName": "Total Charges",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date Processed",
+              "displayName": "Date Processed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        352,
+        0
+      ],
+      "id": "4f3ad9ac-d38d-41eb-a8b9-ff6c8174176a",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "J8AYZ85qakHMHOyY",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "qbeauty2021@gmail.com",
+        "subject": "=New Cargo Shipment Received - {{ $('Information Extractor').first().json.output.waybill_number }}",
+        "message": "=<h2>New Cargo Shipment Summary</h2> <p><strong>Waybill Number:</strong> {{ $('Information Extractor').first().json.output.waybill_number }}</p> <p><strong>Consignee:</strong> {{ $('Information Extractor').first().json.output.consignee_name }}</p> <p><strong>Cargo:</strong> {{ $('Information Extractor').first().json.output.cargo_description }}</p> <p><strong>Total Weight:</strong> {{ $('Information Extractor').first().json.output.total_weight }}</p> <p><strong>Total Value:</strong> {{ $('Information Extractor').first().json.output.total_value }}</p> <p><strong>Total Charges:</strong> {{ $('Information Extractor').first().json.output.total_charges }}</p> <p><strong>Date Processed:</strong> {{ $('Information Extractor').first().json.output.date_processed }}</p> <br> <p>This email was generated automatically by Chosen-Stars Cargo Document Processor.</p>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        560,
+        0
+      ],
+      "id": "ee1a85e0-b56c-4e90-858c-b73051e9dba7",
+      "name": "Send a message",
+      "webhookId": "e28bb077-ea02-4d5f-904d-55a5cd1df547",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "SGcQ9hoKyBdimVMY",
+          "name": "Gmail account 3"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Drive Trigger": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Information Extractor": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "79f3150f-2fb9-451b-a8e9-183a825ee891",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "86cfbd1318d1a50e97e3835896a50adb7d88bd70e6584a4a8cb548491ab6a85e"
+  },
+  "id": "HXm3eZy7eoYyMmpr",
+  "tags": []
+}
