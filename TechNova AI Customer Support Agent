@@ -1,0 +1,175 @@
+# TechNova AI Customer Support Agent
+
+An intelligent, fully automated customer support system built with n8n, Google Gemini AI, Gmail, and Google Sheets. This workflow automatically reads incoming customer emails, searches a knowledge base, generates a professional AI-written reply, and sends it back to the customer without any human intervention.
+
+---
+
+## What This Project Does
+
+When a customer sends an email, this automation:
+
+1. Detects the new email via Gmail Trigger
+2. Loads all FAQ entries from a Google Sheets knowledge base
+3. Uses a JavaScript keyword matching algorithm to find the most relevant answer
+4. Sends the matched answer to Google Gemini AI to write a warm, professional reply
+5. Automatically sends the reply back to the customer via Gmail
+
+---
+
+## Tools and Technologies Used
+
+- **n8n** (Self-hosted, v2.19.4) — workflow automation platform
+- **Gmail Trigger** — detects incoming customer emails
+- **Google Sheets** — stores the knowledge base (FAQ entries)
+- **JavaScript Code Node** — keyword scoring algorithm for answer matching
+- **Google Gemini AI** (models/gemini-3-flash-preview) — generates professional email replies
+- **Gmail** — sends the automated reply to the customer
+
+---
+
+## Workflow Architecture
+
+```
+Gmail Trigger
+     |
+     v
+Google Sheets (Read Knowledge Base)
+     |
+     v
+Code Node (Keyword Matching Algorithm)
+     |
+     v
+Google Gemini AI (Write Professional Reply)
+     |
+     v
+Gmail (Send Reply to Customer)
+```
+
+---
+
+## Knowledge Base Structure
+
+The Google Sheets knowledge base uses three columns:
+
+| Column | Description |
+|--------|-------------|
+| Category | Topic area (Pricing, Refund, Support, Features, Account) |
+| Question | The FAQ question |
+<parameter name="file_text"># TechNova AI Customer Support Agent
+
+An intelligent, fully automated customer support system built with n8n, Google Gemini AI, Gmail, and Google Sheets. This workflow automatically reads incoming customer emails, searches a knowledge base, generates a professional AI-written reply, and sends it back to the customer without any human intervention.
+
+---
+
+## What This Project Does
+
+When a customer sends an email, this automation:
+
+1. Detects the new email via Gmail Trigger
+2. Loads all FAQ entries from a Google Sheets knowledge base
+3. Uses a JavaScript keyword matching algorithm to find the most relevant answer
+4. Sends the matched answer to Google Gemini AI to write a warm, professional reply
+5. Automatically sends the reply back to the customer via Gmail
+
+---
+
+## Tools and Technologies Used
+
+- **n8n** (Self-hosted, v2.19.4) — workflow automation platform
+- **Gmail Trigger** — detects incoming customer emails
+- **Google Sheets** — stores the knowledge base (FAQ entries)
+- **JavaScript Code Node** — keyword scoring algorithm for answer matching
+- **Google Gemini AI** (models/gemini-3-flash-preview) — generates professional email replies
+- **Gmail** — sends the automated reply to the customer
+
+---
+
+## Workflow Architecture
+
+```
+Gmail Trigger
+     |
+     v
+Google Sheets (Read Knowledge Base)
+     |
+     v
+Code Node (Keyword Matching Algorithm)
+     |
+     v
+Google Gemini AI (Write Professional Reply)
+     |
+     v
+Gmail (Send Reply to Customer)
+```
+
+---
+
+## Knowledge Base Structure
+
+The Google Sheets knowledge base uses three columns:
+
+| Column | Description |
+|--------|-------------|
+| Category | Topic area (Pricing, Refund, Support, Features, Account) |
+| Question | The FAQ question |
+| Answer | The answer Gemini will use to craft the reply |
+
+---
+
+## How the Keyword Matching Works
+
+The JavaScript Code node:
+
+- Combines the email subject and body into one text string
+- Loops through every row in the knowledge base
+- Scores each FAQ question by counting how many keywords from the question appear in the email
+- Returns the highest scoring match as the best answer
+- Falls back to a default message if no match is found
+
+---
+
+## Key Configuration Notes
+
+- Gemini model used: **models/gemini-3-flash-preview** (compatible with AQ. format API keys)
+- Gmail credential: **Gmail account 3**
+- Google Sheets credential: **Google Sheets account 2**
+- The Message ID for the Gmail Reply node references the Gmail Trigger node using the expression: `$('TechNova Customer Support Agent.').first().json.id`
+- The Gemini reply text is accessed via: `$json.content.parts[0].text`
+
+---
+
+## How to Use This Workflow
+
+1. Create a Google Sheet with columns: Category, Question, Answer
+2. Fill in your FAQ entries
+3. Import the workflow JSON into your n8n instance
+4. Update the Google Sheets credential and document reference
+5. Update the Gmail credential
+6. Add your Gemini API key
+7. Publish the workflow and start receiving automated replies
+
+---
+
+## Demo Company
+
+This workflow was built and tested using **TechNova Solutions**, a fictional software company, as the demo environment. The knowledge base covers pricing, free trial, refund policy, support hours, integrations, and account cancellation topics.
+
+---
+
+## Skills Demonstrated
+
+- n8n workflow design and debugging
+- Gmail OAuth2 integration
+- Google Sheets as a dynamic knowledge base
+- JavaScript keyword scoring algorithm
+- Google Gemini AI prompt engineering
+- End-to-end automation deployment and publishing
+
+---
+
+## Author
+
+**Rainat Lawal (Remmy)**
+AI Automation Specialist
+Portfolio: [rainat-lawal.netlify.app](https://rainat-lawal.netlify.app)
+GitHub: [github.com/qbeauty2021-tech](https://github.com/qbeauty2021-tech)
