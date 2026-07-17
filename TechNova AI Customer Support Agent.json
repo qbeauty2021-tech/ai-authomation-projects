@@ -1,0 +1,192 @@
+{
+  "name": "TechNova AI Customer Support Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -592,
+        0
+      ],
+      "id": "6848a45d-fd07-4720-b83b-4768514c00ac",
+      "name": "TechNova Customer Support Agent.",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "SGcQ9hoKyBdimVMY",
+          "name": "Gmail account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1HtDv7ryrC_DF1LZ1z6Z6_oyF2OUMPLXqH8CV52hJvJE",
+          "mode": "list",
+          "cachedResultName": "TechNova Knowledge Base",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HtDv7ryrC_DF1LZ1z6Z6_oyF2OUMPLXqH8CV52hJvJE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HtDv7ryrC_DF1LZ1z6Z6_oyF2OUMPLXqH8CV52hJvJE/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -384,
+        0
+      ],
+      "id": "093f5913-daa9-4c25-b415-53a269b33a35",
+      "name": "Knowledge Base",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "J8AYZ85qakHMHOyY",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const emailSubject = $input.first().json.subject || '';\nconst emailBody = $input.first().json.text || '';\nconst emailText = (emailSubject + ' ' + emailBody).toLowerCase();\n\nconst allItems = $input.all();\n\nlet bestMatch = null;\nlet highestScore = 0;\n\nfor (const row of allItems) {\n  const question = (row.json.Question || '').toLowerCase();\n  const keywords = question.split(' ');\n  let score = 0;\n  for (const word of keywords) {\n    if (word.length > 3 && emailText.includes(word)) {\n      score++;\n    }\n  }\n  if (score > highestScore) {\n    highestScore = score;\n    bestMatch = row.json;\n  }\n}\n\nif (!bestMatch) {\n  bestMatch = {\n    Category: 'General',\n    Question: 'Unknown',\n    Answer: 'Thank you for reaching out to TechNova Solutions. A member of our team will get back to you shortly.'\n  };\n}\n\nreturn [{ json: { \n  matchedAnswer: bestMatch.Answer, \n  matchedCategory: bestMatch.Category, \n  emailSubject: emailSubject \n}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -176,
+        0
+      ],
+      "id": "23f12bd8-04dc-4609-8012-3e85b2d3441c",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-3-flash-preview",
+          "mode": "list",
+          "cachedResultName": "models/gemini-3-flash-preview"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a professional customer support agent for TechNova Solutions, a software company.\n\nA customer sent this email:\nSubject: {{ $json.emailSubject }}\n\nBased on our knowledge base, the best answer to their question is:\n{{ $json.matchedAnswer }}\n\nWrite a warm, professional, and concise reply email to the customer. \n- Start with a greeting\n- Address their question using the knowledge base answer\n- End with a polite closing\n- Sign off as \"TechNova Support Team\"\n- Do not include a subject line, just the email body"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        32,
+        0
+      ],
+      "id": "aa9a938e-99f6-4618-b4b6-fa15d86a78ec",
+      "name": "Write the Reply Email",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ervcJKXYOQCuxYXX",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $('TechNova Customer Support Agent.').first().json.id }}",
+        "message": "={{ $json.content.parts[0].text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        384,
+        0
+      ],
+      "id": "dd2d90e8-8bdd-4ef1-809c-992ca589a215",
+      "name": "Reply to a message",
+      "webhookId": "6a08419f-682d-4322-a71f-838a00dbf4ca",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "SGcQ9hoKyBdimVMY",
+          "name": "Gmail account 3"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "TechNova Customer Support Agent.": {
+      "main": [
+        [
+          {
+            "node": "Knowledge Base",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Knowledge Base": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Write the Reply Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write the Reply Email": {
+      "main": [
+        [
+          {
+            "node": "Reply to a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "96282e84-7280-46d2-ab1a-ef0f67016b0d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "86cfbd1318d1a50e97e3835896a50adb7d88bd70e6584a4a8cb548491ab6a85e"
+  },
+  "id": "rCSR3fIMeqi20l0s",
+  "tags": []
+}
