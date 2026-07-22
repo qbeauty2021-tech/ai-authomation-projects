@@ -1,0 +1,86 @@
+# Job Application Automator
+
+An intelligent, fully automated job application pipeline built with n8n, 
+Gemini AI, and Google Sheets. This workflow runs daily, finds relevant 
+AI Automation roles, scores them using AI, generates tailored cover 
+letters, and applies automatically.
+
+---
+
+## What It Does
+
+- Scrapes jobs daily from 7 sources including LinkedIn, Indeed, 
+  Remotive, WeWorkRemotely, Himalayas, Remoteok, and Arbeitnow
+- Filters jobs by location (Remote and Nigeria) and role keywords
+- Uses Gemini AI to score each job from 1 to 10 based on skill match,
+  location fit, seniority, and apply URL availability
+- Auto-applies to jobs scoring 6 and above with a tailored cover letter
+- Flags complex or low-scoring jobs to a Manual Review sheet
+- Logs all applications to Google Sheets with status, score, and reason
+- Sends a daily Gmail summary of all activity
+
+---
+
+## Workflow Architecture
+
+| Node | Purpose |
+|---|---|
+| Daily Trigger 2PM Lagos | Fires every day at 2pm Lagos time |
+| Global Config | Stores personal details, target roles, regions |
+| Source 1 - Remotive | Scrapes remote tech jobs via RSS |
+| Source 2 - WeWorkRemotely | Scrapes remote jobs via RSS |
+| Source 3 - Himalayas | Scrapes remote jobs via RSS |
+| Source 4 - Remoteok | Pulls jobs via JSON API |
+| Source 5 - Arbeitnow | Pulls jobs via free API |
+| Source 6 - Arbeitnow 2 | Secondary Arbeitnow feed |
+| Source 7 - JSearch | Pulls LinkedIn and Indeed jobs via RapidAPI |
+| Merge All Sources | Combines all 7 sources into one stream |
+| Normalise All Sources | Converts all data into unified job objects |
+| Geo Filter | Keeps only Remote, Nigeria, US, UK jobs |
+| Job Role Filter | Keeps only automation related roles |
+| Prep AI Scoring Prompt | Builds the Gemini scoring prompt per job |
+| Gemini AI Scorer | Sends each job to Gemini for scoring |
+| Parse Gemini Score | Extracts score, reason, and apply URL |
+| Score Filter | Routes high scoring jobs to Track A, low to Track B |
+| Cover Letter Generator | Generates tailored cover letter using Gemini AI |
+| Log Applied Jobs | Logs auto-applied jobs to Google Sheets |
+| Daily Summary Email | Sends Gmail summary of all applications |
+| Flag for Manual Review | Logs low scoring jobs to Manual Review sheet |
+
+---
+
+## Tools and APIs Used
+
+- n8n (self-hosted workflow automation)
+- Google Gemini AI (gemini-3-flash-preview model)
+- JSearch API via RapidAPI (LinkedIn and Indeed jobs)
+- Google Sheets (application tracking)
+- Gmail (daily summary emails)
+- Remotive RSS, WeWorkRemotely RSS, Himalayas RSS
+- Remoteok JSON API, Arbeitnow API
+
+---
+
+## How to Use
+
+1. Import the workflow JSON into your n8n instance
+2. Update the Global Config node with your personal details
+3. Add your Gemini API key to the Gemini AI Scorer node
+4. Add your JSearch RapidAPI key to Source 7
+5. Connect your Google Sheets and Gmail credentials
+6. Activate the workflow and let it run daily
+
+---
+
+## Built By
+
+**Rainat Lawal**
+AI Automation Specialist based in Abuja, Nigeria
+
+- Portfolio: https://rainat-lawal.netlify.app
+- GitHub: https://github.com/qbeauty2021-tech
+- LinkedIn: https://linkedin.com/in/rainat-lawal
+
+---
+
+## Part of TechCrush AI Automation Bootcamp Portfolio
