@@ -1,0 +1,904 @@
+{
+  "name": "Application Automator",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 14
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1920,
+        64
+      ],
+      "id": "bfea74fc-16fe-4184-9879-2d6eee5d96d5",
+      "name": "Daily Trigger 2PM Lagos"
+    },
+    {
+      "parameters": {
+        "url": "https://remotive.com/remote-jobs/feed?category=software-dev",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1472,
+        -512
+      ],
+      "id": "59443f80-1717-480e-99b6-78299b8f1280",
+      "name": "Source 1 - Remotive"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7ac97dc0-f007-4c4e-94e2-f55f93c99257",
+              "name": "targetRoles",
+              "value": "AI Automation Specialist, n8n Developer, Workflow Automation Engineer",
+              "type": "string"
+            },
+            {
+              "id": "21882249-8f10-40f1-b8e7-c5aa307ccab6",
+              "name": "targetRegions",
+              "value": "Remote, Nigeria, Abuja",
+              "type": "string"
+            },
+            {
+              "id": "811a8932-0b1b-40f8-97fb-dfae79a92cae",
+              "name": "dailyLimit",
+              "value": 50,
+              "type": "number"
+            },
+            {
+              "id": "97c348dd-3a1e-4915-a20c-6b15bdf18e66",
+              "name": "email",
+              "value": "qbeauty2021@gmail.com",
+              "type": "string"
+            },
+            {
+              "id": "c06fe5ff-e7c6-491f-b347-71e42a19d5c2",
+              "name": "resumePath",
+              "value": "rainat_lawal_resume.pdf",
+              "type": "string"
+            },
+            {
+              "id": "9648c60b-ac5b-476e-bbe6-02b6221c46fd",
+              "name": "githubUrl",
+              "value": "https://rainat-lawal.netlify.app",
+              "type": "string"
+            },
+            {
+              "id": "69d5e0b8-7ca9-4ef0-90b4-ebf46c6192fe",
+              "name": "fullName",
+              "value": "Rainat Lawal",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1696,
+        64
+      ],
+      "id": "ddb6e5ba-1be7-4db5-86ba-26a2ad9e985c",
+      "name": "Global Config"
+    },
+    {
+      "parameters": {
+        "url": "https://weworkremotely.com/remote-jobs.rss",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1472,
+        -320
+      ],
+      "id": "a6df9c8c-e1a4-47cb-9db0-c8e36e2f7178",
+      "name": "Source 2 - WeWorkRemotely"
+    },
+    {
+      "parameters": {
+        "url": "https://himalayas.app/jobs/rss",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1472,
+        -128
+      ],
+      "id": "d7757ff5-586a-4a86-87d3-aa073463d10f",
+      "name": "Source 3 - Himalayas"
+    },
+    {
+      "parameters": {
+        "numberInputs": 7
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1072,
+        -48
+      ],
+      "id": "0a4772db-504b-43d4-b88f-90ab30b28277",
+      "name": "Merge All Sources"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst normalized = [];\n\nfor (const item of items) {\n  const job = item.json;\n\n  normalized.push({\n    json: {\n      title: job.title || job.position || job.job_title || \"\",\n      company: job.company || job.organization || job.company_name || \"\",\n      location: job.location || job.job_location || \"Remote\",\n      applyUrl: job.link || job.url || job.apply_url || job.job_url || \"\",\n      description: job.description || job.content || job.summary || \"\",\n      source: job.source || \"RSS Feed\",\n      postedAt: job.pubDate || job.published || job.date || \"\",\n      salary: job.salary || job.compensation || \"\",\n    }\n  });\n}\n\nreturn normalized;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -832,
+        -128
+      ],
+      "id": "6e72c895-1413-44bb-8760-6e5893215e55",
+      "name": "Normalise All Sources"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst allowed = [];\n\nconst blockedKeywords = [\n  \"india\", \"pakistan\", \"bangladesh\", \"philippines\",\n  \"indonesia\", \"brazil\", \"mexico\", \"china\", \"europe only\",\n  \"eu only\", \"latam\", \"latin america\"\n];\n\nconst allowedKeywords = [\n  \"remote\", \"worldwide\", \"global\", \"anywhere\",\n  \"nigeria\", \"abuja\", \"us\", \"usa\", \"united states\",\n  \"uk\", \"united kingdom\", \"canada\"\n];\n\nfor (const item of items) {\n  const location = (item.json.location || \"\").toLowerCase();\n  const title = (item.json.title || \"\").toLowerCase();\n  const description = (item.json.description || \"\").toLowerCase();\n\n  const isBlocked = blockedKeywords.some(keyword =>\n    location.includes(keyword) ||\n    description.includes(keyword + \" only\") ||\n    description.includes(keyword + \"-only\")\n  );\n\n  const isAllowed = allowedKeywords.some(keyword =>\n    location.includes(keyword)\n  );\n\n  if (!isBlocked && (isAllowed || location === \"\")) {\n    allowed.push(item);\n  }\n}\n\nreturn allowed;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -656,
+        -256
+      ],
+      "id": "28c44c20-e7d6-4934-b305-f84e805c5d45",
+      "name": "Geo Filter"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst matched = [];\n\nconst targetKeywords = [\n  \"automation\", \"n8n\", \"workflow\", \"ai automation\",\n  \"zapier\", \"make.com\", \"integromat\", \"no-code\",\n  \"low-code\", \"rpa\", \"robotic process\", \"process automation\",\n  \"ai engineer\", \"ai specialist\", \"integration engineer\",\n  \"chatbot\", \"llm\", \"langchain\", \"ai agent\"\n];\n\nfor (const item of items) {\n  const title = (item.json.title || \"\").toLowerCase();\n  const description = (item.json.description || \"\").toLowerCase();\n\n  const isMatch = targetKeywords.some(keyword =>\n    title.includes(keyword) || description.includes(keyword)\n  );\n\n  if (isMatch) {\n    matched.push(item);\n  }\n}\n\nreturn matched;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -464,
+        -304
+      ],
+      "id": "1f37ea2e-a645-4b03-bac2-a344f4496adb",
+      "name": "Job Role Filter"
+    },
+    {
+      "parameters": {
+        "url": "https://remoteok.com/api",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1472,
+        64
+      ],
+      "id": "49501487-7640-4913-84d6-5e24b48d74c3",
+      "name": "Source 4 - Remoteok"
+    },
+    {
+      "parameters": {
+        "url": "https://www.arbeitnow.com/api/job-board-api",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1472,
+        448
+      ],
+      "id": "19d69cd4-8bc2-4122-a6a1-3f2c30432530",
+      "name": "Source 6 - Nodesk"
+    },
+    {
+      "parameters": {
+        "url": "https://jsearch.p.rapidapi.com/search-v2",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "automation specialist"
+            },
+            {
+              "name": "num_pages",
+              "value": "1"
+            },
+            {
+              "name": "country",
+              "value": "ng"
+            },
+            {
+              "name": "date_posted",
+              "value": "all"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-rapidapi-host",
+              "value": "jsearch.p.rapidapi.com"
+            },
+            {
+              "name": "x-rapidapi-key",
+              "value": "f38b520f46msh1e215f4d892eb46p1b0f97jsnfffa2788410b"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1472,
+        640
+      ],
+      "id": "aa49b01f-32d4-465e-868b-4ad593d77a31",
+      "name": "Source 7 - JSearch"
+    },
+    {
+      "parameters": {
+        "url": "https://www.arbeitnow.com/feed",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1472,
+        256
+      ],
+      "id": "52a9ff45-d547-4af4-abd3-cbba1adc85df",
+      "name": "Source 5 - Arbeitnow"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2aac19f5-e9f3-45e0-919e-f787323dabd1",
+              "name": "scoringPrompt",
+              "value": "=You are a job application assistant for Rainat Lawal, an AI Automation Specialist based in Abuja, Nigeria.  Evaluate this job and give it a score from 1 to 10 based on these criteria: 1. Match to skills: n8n, AI automation, workflow automation, Gemini AI, Claude API, Google Sheets 2. Location fit: Remote or Nigeria based preferred 3. Seniority fit: Mid level or entry level preferred 4. Apply URL exists: Direct application link available  Job Title: {{ $json.title }} Company: {{ $json.company }} Location: {{ $json.location }} Description: {{ $json.description }}  Respond ONLY in this exact JSON format with no extra text: {   \"score\": 7,   \"reason\": \"Good match because...\",   \"applyUrl\": \"url here or null\" }",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -256,
+        -304
+      ],
+      "id": "c364003f-eaa5-47e4-b6b1-9222a4108f78",
+      "name": "Prep AI Scoring Prompt"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "key",
+              "value": "AQ.Ab8RN6JdERRYgGDJ5qlsDzNZROuzZ9mVICwcB6GZeQNNrx4TJA"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "JSON",
+        "body": "={{ JSON.stringify({\"contents\": [{\"parts\": [{\"text\": $json.scoringPrompt}]}]}) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -48,
+        -304
+      ],
+      "id": "eb738cf4-24da-4f6a-a35f-d58b25b76d57",
+      "name": "Gemini AI Scorer",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const text = $input.item.json.candidates[0].content.parts[0].text;\nconst cleaned = text.replace(/```json|```/g, \"\").trim();\n\nlet parsed;\ntry {\n  parsed = JSON.parse(cleaned);\n} catch(e) {\n  parsed = { score: 0, reason: \"Could not parse\", applyUrl: null };\n}\n\nreturn {\n  json: {\n    title: $input.item.json.title || \"\",\n    company: $input.item.json.company || \"\",\n    location: $input.item.json.location || \"\",\n    source: $input.item.json.source || \"\",\n    description: $input.item.json.description || \"\",\n    aiScore: parsed.score,\n    aiReason: parsed.reason,\n    applyUrl: parsed.applyUrl\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        160,
+        -320
+      ],
+      "id": "e9b3ce8f-ed4e-47f4-888f-f60200662706",
+      "name": "Parse Gemini Score"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "75587177-2e91-4f60-9dca-9aec3b91419f",
+              "leftValue": "={{ $json.aiScore }}",
+              "rightValue": 6,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        368,
+        -304
+      ],
+      "id": "53938f50-e44f-434f-a7a6-484b97e6c9cf",
+      "name": "Score Filter"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1nlomXszY6McO2huvNIh1zCU1dMT0ZSgMw1wTHuuhoxw",
+          "mode": "list",
+          "cachedResultName": "Job Application Tracker",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nlomXszY6McO2huvNIh1zCU1dMT0ZSgMw1wTHuuhoxw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nlomXszY6McO2huvNIh1zCU1dMT0ZSgMw1wTHuuhoxw/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Job Title": "={{ $json.title }}",
+            "Company": "={{ $json.company }}",
+            "AI Score": "={{ $json.aiScore }}",
+            "Reason": "={{ $json.aiReason }}",
+            "Status": "Manual Required"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Job Title",
+              "displayName": "Job Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "AI Score",
+              "displayName": "AI Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Reason",
+              "displayName": "Reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        576,
+        -208
+      ],
+      "id": "6f069043-43b6-4205-8ca1-21e1fa9d8f60",
+      "name": "Flag for Manual Review",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "J8AYZ85qakHMHOyY",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "key",
+              "value": "AQ.Ab8RN6JdERRYgGDJ5qlsDzNZROuzZ9mVICwcB6GZeQNNrx4TJA"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "JSON",
+        "body": "={{ JSON.stringify({\"contents\": [{\"parts\": [{\"text\": \"You are a professional cover letter writer.\\n\\nWrite a tailored cover letter for Rainat Lawal applying for this job:\\n\\nJob Title: \" + $json.title + \"\\nCompany: \" + $json.company + \"\\nLocation: \" + $json.location + \"\\nJob Description: \" + $json.description + \"\\n\\nAbout Rainat:\\n- AI Automation Specialist based in Abuja, Nigeria\\n- Skills: n8n, workflow automation, Gemini AI, Claude API, Google Sheets, HTTP integrations\\n- Portfolio: https://rainat-lawal.netlify.app\\n- GitHub: https://github.com/qbeauty2021-tech\\n\\nWrite a professional, concise cover letter of 3 paragraphs. Be specific to the job. Do not use placeholders.\"}]}]}) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        576,
+        -400
+      ],
+      "id": "d236c1c9-7f1e-4777-9ad4-86608cf0055d",
+      "name": "Cover Letter Generator"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1qW-UXNw5MulkzlIaXuY1KijvkzQ2Z8AscGrRLW6JNlM",
+          "mode": "list",
+          "cachedResultName": "Log Applied Jobs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1qW-UXNw5MulkzlIaXuY1KijvkzQ2Z8AscGrRLW6JNlM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1qW-UXNw5MulkzlIaXuY1KijvkzQ2Z8AscGrRLW6JNlM/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Job Title": "={{ $('Parse Gemini Score').item.json.title }}",
+            "Company": "={{ $('Parse Gemini Score').item.json.company }}",
+            "Location": "={{ $('Parse Gemini Score').item.json.location }}",
+            "AI Score": "={{ $('Parse Gemini Score').item.json.aiScore }}",
+            "Status": "Applied",
+            "Source": "={{ $('Parse Gemini Score').item.json.source }}",
+            "Date Applied": "={{ new Date().toISOString() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Job Title",
+              "displayName": "Job Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Location",
+              "displayName": "Location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "AI Score",
+              "displayName": "AI Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Source",
+              "displayName": "Source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Date Applied",
+              "displayName": "Date Applied",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        784,
+        -400
+      ],
+      "id": "c3e2c7cf-9a90-4440-bd76-2db1f9bd00ec",
+      "name": "Log Applied Jobs",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "J8AYZ85qakHMHOyY",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "qbeauty2021@gmail.com",
+        "subject": "Daily Job Application Summary",
+        "emailType": "text",
+        "message": "={{ \"Jobs Applied: \" + $('Parse Gemini Score').item.json.title + \" at \" + $('Parse Gemini Score').item.json.company }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        992,
+        -400
+      ],
+      "id": "9147cdf3-0009-4287-830f-1fe3c440175b",
+      "name": "Send a message",
+      "webhookId": "5e769727-35dd-412b-b0db-42f1262264a4",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "SGcQ9hoKyBdimVMY",
+          "name": "Gmail account 3"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Daily Trigger 2PM Lagos": {
+      "main": [
+        [
+          {
+            "node": "Global Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Global Config": {
+      "main": [
+        [
+          {
+            "node": "Source 1 - Remotive",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Source 2 - WeWorkRemotely",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Source 3 - Himalayas",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Source 4 - Remoteok",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Source 5 - Arbeitnow",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Source 6 - Nodesk",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Source 7 - JSearch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Source 3 - Himalayas": {
+      "main": [
+        [
+          {
+            "node": "Merge All Sources",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Source 1 - Remotive": {
+      "main": [
+        [
+          {
+            "node": "Merge All Sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Source 2 - WeWorkRemotely": {
+      "main": [
+        [
+          {
+            "node": "Merge All Sources",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge All Sources": {
+      "main": [
+        [
+          {
+            "node": "Normalise All Sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalise All Sources": {
+      "main": [
+        [
+          {
+            "node": "Geo Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Geo Filter": {
+      "main": [
+        [
+          {
+            "node": "Job Role Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Source 4 - Remoteok": {
+      "main": [
+        [
+          {
+            "node": "Merge All Sources",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Source 5 - Arbeitnow": {
+      "main": [
+        [
+          {
+            "node": "Merge All Sources",
+            "type": "main",
+            "index": 4
+          }
+        ]
+      ]
+    },
+    "Source 6 - Nodesk": {
+      "main": [
+        [
+          {
+            "node": "Merge All Sources",
+            "type": "main",
+            "index": 5
+          }
+        ]
+      ]
+    },
+    "Source 7 - JSearch": {
+      "main": [
+        [
+          {
+            "node": "Merge All Sources",
+            "type": "main",
+            "index": 6
+          }
+        ]
+      ]
+    },
+    "Job Role Filter": {
+      "main": [
+        [
+          {
+            "node": "Prep AI Scoring Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prep AI Scoring Prompt": {
+      "main": [
+        [
+          {
+            "node": "Gemini AI Scorer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini AI Scorer": {
+      "main": [
+        [
+          {
+            "node": "Parse Gemini Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Gemini Score": {
+      "main": [
+        [
+          {
+            "node": "Score Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Score Filter": {
+      "main": [
+        [
+          {
+            "node": "Cover Letter Generator",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Flag for Manual Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cover Letter Generator": {
+      "main": [
+        [
+          {
+            "node": "Log Applied Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Applied Jobs": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "a4d7e4f0-669c-45ff-97a7-ee35534c9f00",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "86cfbd1318d1a50e97e3835896a50adb7d88bd70e6584a4a8cb548491ab6a85e"
+  },
+  "id": "KrfWmXfItt65XJJ4",
+  "tags": []
+}
